@@ -21,7 +21,7 @@ import (
 
 	mf "github.com/manifestival/manifestival"
 	"go.uber.org/zap"
-	istionetworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	istionetworkingv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"istio.io/client-go/pkg/clientset/versioned/scheme"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"knative.dev/operator/pkg/apis/operator/base"
@@ -38,8 +38,8 @@ func istioTransformers(ctx context.Context, instance *v1beta1.KnativeServing) []
 func gatewayTransform(instance *servingv1beta1.KnativeServing, log *zap.SugaredLogger) mf.Transformer {
 	return func(u *unstructured.Unstructured) error {
 		// Update the deployment with the new registry and tag
-		if u.GetAPIVersion() == "networking.istio.io/v1alpha3" && u.GetKind() == "Gateway" {
-			gateway := &istionetworkingv1alpha3.Gateway{}
+		if u.GetAPIVersion() == "networking.istio.io/v1beta1" && u.GetKind() == "Gateway" {
+			gateway := &istionetworkingv1beta1.Gateway{}
 			if err := scheme.Scheme.Convert(u, gateway, nil); err != nil {
 				return err
 			}
@@ -79,7 +79,7 @@ func localGateway(instance *servingv1beta1.KnativeServing) *base.IstioGatewayOve
 	return nil
 }
 
-func updateIstioGateway(override *base.IstioGatewayOverride, gateway *istionetworkingv1alpha3.Gateway, log *zap.SugaredLogger) error {
+func updateIstioGateway(override *base.IstioGatewayOverride, gateway *istionetworkingv1beta1.Gateway, log *zap.SugaredLogger) error {
 	if override != nil && len(override.Selector) > 0 {
 		log.Debugw("Updating Gateway", "name", gateway.GetName(), "gatewayOverrides", override)
 		gateway.Spec.Selector = override.Selector

@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	"go.uber.org/zap"
-	istiov1alpha3 "istio.io/api/networking/v1alpha3"
-	istionetworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	istiov1beta1 "istio.io/api/networking/v1beta1"
+	istionetworkingv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"istio.io/client-go/pkg/clientset/versioned/scheme"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"knative.dev/operator/pkg/apis/operator/base"
@@ -31,7 +31,7 @@ import (
 
 var log = zap.NewNop().Sugar()
 
-func gatewayOverride(selector map[string]string, servers []*istiov1alpha3.Server) *base.IstioGatewayOverride {
+func gatewayOverride(selector map[string]string, servers []*istiov1beta1.Server) *base.IstioGatewayOverride {
 	return &base.IstioGatewayOverride{
 		Selector: selector,
 		Servers:  servers,
@@ -39,35 +39,35 @@ func gatewayOverride(selector map[string]string, servers []*istiov1alpha3.Server
 }
 
 func TestGatewayTransform(t *testing.T) {
-	serverIn := []*istiov1alpha3.Server{
+	serverIn := []*istiov1beta1.Server{
 		{
 			Hosts: []string{"localhost"},
-			Port:  &istiov1alpha3.Port{Name: "test"},
+			Port:  &istiov1beta1.Port{Name: "test"},
 		}, {
 			Hosts: []string{"localhost"},
-			Port:  &istiov1alpha3.Port{Name: "test"},
+			Port:  &istiov1beta1.Port{Name: "test"},
 		}}
 
-	serverUpdate := []*istiov1alpha3.Server{
+	serverUpdate := []*istiov1beta1.Server{
 		{
 			Hosts: []string{"localhost-1"},
-			Port:  &istiov1alpha3.Port{Name: "test-1", Protocol: "proto-1", Number: 25, TargetPort: 53},
+			Port:  &istiov1beta1.Port{Name: "test-1", Protocol: "proto-1", Number: 25, TargetPort: 53},
 		}, {
 			Hosts: []string{"localhost-1"},
-			Port:  &istiov1alpha3.Port{Name: "test-1", Protocol: "proto-2", Number: 45, TargetPort: 23},
+			Port:  &istiov1beta1.Port{Name: "test-1", Protocol: "proto-2", Number: 45, TargetPort: 23},
 		}}
 
 	tests := []struct {
 		name                            string
 		gatewayName                     string
 		in                              map[string]string
-		serversIn                       []*istiov1alpha3.Server
+		serversIn                       []*istiov1beta1.Server
 		knativeIngressGateway           *base.IstioGatewayOverride
 		clusterLocalGateway             *base.IstioGatewayOverride
 		deprecatedKnativeIngressGateway base.IstioGatewayOverride
 		deprecatedClusterLocalGateway   base.IstioGatewayOverride
 		expected                        map[string]string
-		expectedServersIn               []*istiov1alpha3.Server
+		expectedServersIn               []*istiov1beta1.Server
 	}{{
 		name:        "update ingress gateway",
 		gatewayName: "knative-ingress-gateway",
@@ -147,7 +147,7 @@ func TestGatewayTransform(t *testing.T) {
 
 			gatewayTransform(instance, log)(gateway)
 
-			gatewayResult := &istionetworkingv1alpha3.Gateway{}
+			gatewayResult := &istionetworkingv1beta1.Gateway{}
 			err := scheme.Scheme.Convert(gateway, gatewayResult, nil)
 			util.AssertEqual(t, err, nil)
 			util.AssertDeepEqual(t, gatewayResult.Spec.Selector, tt.expected)
@@ -162,8 +162,8 @@ func TestGatewayTransform(t *testing.T) {
 	}
 }
 
-func makeUnstructuredGateway(t *testing.T, name string, selector map[string]string, servers []*istiov1alpha3.Server) *unstructured.Unstructured {
-	gateway := &istionetworkingv1alpha3.Gateway{}
+func makeUnstructuredGateway(t *testing.T, name string, selector map[string]string, servers []*istiov1beta1.Server) *unstructured.Unstructured {
+	gateway := &istionetworkingv1beta1.Gateway{}
 	result := &unstructured.Unstructured{}
 	gateway.SetName(name)
 	gateway.Spec.Selector = selector
